@@ -1,0 +1,123 @@
+<?php
+@include 'config.php';
+session_start();
+
+if(isset($_POST['submit'])){
+   $email = mysqli_real_escape_string($conn, $_POST['email']);
+   $pass = md5($_POST['password']);
+   
+   $select = "SELECT * FROM user_form WHERE email = '$email' AND password = '$pass'";
+   $result = mysqli_query($conn, $select);
+
+   if(mysqli_num_rows($result) > 0){
+      $row = mysqli_fetch_array($result);
+      $_SESSION['user_name'] = $row['name'];
+      header('location:berandapengajuan.php');
+   } else {
+      $error[] = 'Incorrect email or password!';
+   }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Login Form</title>
+   <style>
+      body {
+         font-family: Arial, sans-serif;
+         background: #f2f2f2;
+         display: flex;
+         justify-content: center;
+         align-items: center;
+         height: 100vh;
+         margin: 0;
+      }
+      .container {
+         display: flex;
+         background: #fff;
+         border-radius: 10px;
+         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+         overflow: hidden;
+         width: auto;
+      }
+      .image-container {
+         width: 400px; /* Atur lebar sesuai dengan ukuran gambar */
+         height: 500px; /* Atur tinggi sesuai dengan ukuran gambar */
+         background: url('login3.jpg') no-repeat center center;
+         background-size: cover;
+      }
+      .form-container {
+         width: 400px; /* Atur lebar sesuai dengan ukuran gambar */
+         padding: 20px;
+         display: flex;
+         flex-direction: column;
+         justify-content: center;
+         align-items: center;
+      }
+      h3 {
+         margin-bottom: 20px;
+         color: #4CAF50;
+      }
+      input[type="email"],
+      input[type="password"] {
+         width: calc(100% - 20px);
+         padding: 10px;
+         margin: 10px 0;
+         border: 1px solid #ccc;
+         border-radius: 5px;
+      }
+      input[type="submit"] {
+         background: #4CAF50;
+         color: #fff;
+         border: none;
+         border-radius: 5px;
+         padding: 10px;
+         width: calc(100% - 20px);
+         cursor: pointer;
+         transition: background 0.3s ease;
+      }
+      input[type="submit"]:hover {
+         background: #45a049;
+      }
+      .error-msg {
+         color: red;
+         margin: 10px 0;
+      }
+      p {
+         margin-top: 20px;
+      }
+      a {
+         color: #4CAF50;
+         text-decoration: none;
+      }
+      a:hover {
+         text-decoration: underline;
+      }
+   </style>
+</head>
+<body>
+<div class="container">
+   <div class="image-container"></div>
+   <div class="form-container">
+      <form action="" method="post">
+         <h3>Login Now</h3>
+         <?php
+         if(isset($error)){
+            foreach($error as $err){
+               echo '<span class="error-msg">'.$err.'</span>';
+            }
+         }
+         ?>
+         <input type="email" name="email" required placeholder="Enter your email">
+         <input type="password" name="password" required placeholder="Enter your password">
+         <input type="submit" name="submit" value="Login Now">
+         <p>Don't have an account? <a href="register_form.php">Register now</a></p>
+      </form>
+   </div>
+</div>
+</body>
+</html>
