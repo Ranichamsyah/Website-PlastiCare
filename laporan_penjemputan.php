@@ -163,7 +163,26 @@ if ($conn->connect_error) {
             background-color: #f44336;
             color: white;
         }
+        .print-btn-container {
+            text-align: right;
+            margin-top: 20px;
+        }
+        .print-btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .print-btn:hover {
+            background-color: #45a049;
+        }
     </style>
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
     <header>
@@ -184,7 +203,7 @@ if ($conn->connect_error) {
         <div class="main-content" id="main-content">
             <div class="table-container">
                 <h2>Laporan Pengajuan Sampah</h2>
-                <table>
+                <table id="tabel-laporan">
                     <thead>
                         <tr>
                             <th>Nama</th>
@@ -218,6 +237,9 @@ if ($conn->connect_error) {
                         ?>
                     </tbody>
                 </table>
+                <div class="print-btn-container">
+                    <button class="print-btn" onclick="cetakPDF()">Cetak Laporan</button>
+                </div>
             </div>
         </div>
     </div>
@@ -228,6 +250,17 @@ if ($conn->connect_error) {
             var mainContent = document.getElementById('main-content');
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('collapsed');
+        }
+
+        function cetakPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Tambahkan konten dari tabel HTML ke dalam PDF
+            doc.autoTable({ html: '#tabel-laporan' });
+            
+            // Simpan PDF dengan nama file 'laporan.pdf'
+            doc.save('laporan.pdf');
         }
     </script>
 </body>

@@ -178,6 +178,7 @@ if ($conn->connect_error) {
             <ul>
                 <li><a href="laporan_penjemputan.php">Laporan Penjemputan</a></li>
                 <li><a href="lihat_testimoni.php">Lihat Testimoni</a></li>
+                <li><a href="laporan_grafik.php">Grafik pengajuan sampah</a></li>
              
             </ul>
         </div>

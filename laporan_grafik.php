@@ -1,16 +1,30 @@
 <?php
-@include 'config.php';
-session_start();
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "banksampah";
 
-// Periksa apakah user sudah login sebagai pimpinan
-if (!isset($_SESSION['pimpinan_name'])) {
-    header('location:pimpinan_login.php');
-    exit;
+// Membuat koneksi
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Memeriksa koneksi
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
 }
 
-// Mengambil data testimoni dari database
-$query = "SELECT * FROM testimoni ORDER BY tanggal DESC";
-$result = mysqli_query($conn, $query);
+// Mengambil data untuk grafik berdasarkan tanggal
+$sql_grafik = "SELECT DATE(jadwal) AS hari, SUM(jumlah) AS total_berat FROM pengajuan_sampah GROUP BY hari";
+$result_grafik = $conn->query($sql_grafik);
+
+$days = [];
+$weights = [];
+
+if ($result_grafik->num_rows > 0) {
+    while ($row_grafik = $result_grafik->fetch_assoc()) {
+        $days[] = $row_grafik["hari"];
+        $weights[] = $row_grafik["total_berat"];
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -18,13 +32,17 @@ $result = mysqli_query($conn, $query);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hasil Testimoni</title>
+    <title>Grafik Penjemputan Sampah per Hari</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
+        }
+        .container {
+            display: flex;
+            margin-top: 60px;
         }
         header {
             width: 100%;
@@ -47,17 +65,17 @@ $result = mysqli_query($conn, $query);
         }
         header h1 {
             margin: 0;
-            font-size: 24px;
+            font-size: 36px;
             font-family: 'Times New Roman', serif;
         }
         .logout-btn {
-            margin-left: auto;
             color: white;
             text-decoration: none;
-            padding: 0px;
+            padding: 10px 20px;
             background-color: #4CAF50;
             border-radius: 5px;
-            margin-right: 50px;
+            margin-left: auto;
+            margin-right: 45px;
         }
         .logout-btn:hover {
             background-color: #45a049;
@@ -120,30 +138,14 @@ $result = mysqli_query($conn, $query);
             margin-left: 60px;
             width: calc(100% - 60px);
         }
-        .table-container {
-            margin-top: 80px;
+        .chart-container {
+            margin-top: 20px;
             background-color: #fff;
             border-radius: 5px;
             padding: 20px;
-            overflow-x: auto;
-        }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #4CAF50;
-            color: white;
-        }
-        tr:hover {
-            background-color: #f2f2f2;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <header>
@@ -158,37 +160,15 @@ $result = mysqli_query($conn, $query);
             <ul>
                 <li><a href="laporan_penjemputan.php">Laporan Penjemputan</a></li>
                 <li><a href="lihat_testimoni.php">Lihat Testimoni</a></li>
-                <li><a href="laporan_grafik.php">Grafik pengajuan sampah</a></li>
+                <li><a href="laporan_grafik.php">Grafik Pengajuan</a></li>
+                
             </ul>
         </div>
         
         <div class="main-content" id="main-content">
-            <div class="table-container">
-                <h2>Hasil Testimoni</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nama</th>
-                            <th>Pesan</th>
-                            <th>Tanggal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        if (mysqli_num_rows($result) > 0) {
-                            while ($row = mysqli_fetch_assoc($result)) {
-                                echo "<tr>
-                                    <td>{$row['nama']}</td>
-                                    <td>{$row['pesan']}</td>
-                                    <td>{$row['tanggal']}</td>
-                                </tr>";
-                            }
-                        } else {
-                            echo "<tr><td colspan='3'>Tidak ada testimoni.</td></tr>";
-                        }
-                        ?>
-                    </tbody>
-                </table>
+            <div class="chart-container">
+                <h2>Grafik Berat Sampah per Hari</h2>
+                <canvas id="sampahChart"></canvas>
             </div>
         </div>
     </div>
@@ -200,6 +180,31 @@ $result = mysqli_query($conn, $query);
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('collapsed');
         }
+
+        var days = <?php echo json_encode($days); ?>;
+        var weights = <?php echo json_encode($weights); ?>;
+
+        var ctx = document.getElementById('sampahChart').getContext('2d');
+        var sampahChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: days,
+                datasets: [{
+                    label: 'Berat Sampah (kg)',
+                    data: weights,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
     </script>
 </body>
 </html>
